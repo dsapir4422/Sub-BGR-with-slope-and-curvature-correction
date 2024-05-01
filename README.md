@@ -4,7 +4,7 @@ In this project we will show the design of a Sub Band Gap Reference (BGR) circui
 **Specifications**
 * $V_{REF} =  1.0[V]$
 * $V_{DD} = 1.8[V]$
-* $TC < 30[PPM]$
+* $TC = dVout/(V_{avg}*dT) < 30[PPM]$
 * Temperature range $-40 : 140 [C]$
 * $PSRR > 20[dB]$ up to 1MHz
 
@@ -48,5 +48,83 @@ Where we can adjust the resistor ratio to -
 * R3/R5 - curvature cancellation
 
 ## Design & Simulations
+
+**PTAT, CTAT model**
+
+First we build a model to simulate CTAT and PTAT behavior, and calculate their slope - 
+
+<img width="400" height="400" alt="image" align=left src="https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/9afe0f64-aa2d-47c5-9f3c-9aa816a49213">
+<img width="450" height="450" alt="image" align=center src="https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/80261444-6092-4b14-979e-4abf37773735">
+
+We can see that the slope correction is R3/R1 = 1.416/0.211 = 6.75.
+
+We can also simulate the bandgap voltage, as we can see it has a curvature behavior (after slope cancellation) - 
+
+![image](https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/909f8d06-218d-4cfd-ba1c-19d5ad054a24)
+
+**BGR Final circuit**
+
+We chose the following values based on hand calculations & tool simulations (see attach excel) - 
+* R1=12[KOhm] for ~ 10[uA] current on each branch
+* N=8 for symmetric layout
+* R3=81[KOhm] according to calculations
+* R4=70.5[KOhm] according to calculations
+
+
+Applying all of the above into a final circuit - 
+![image](https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/87fe6670-fc52-4f7f-8e78-832cda12ef5a)
+
+Vout (e.g VREF) with slope trimming only - 
+![image](https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/ecbaa6b6-66e6-4538-a6ff-d8f7b68446d7)
+
+which corresponds to a TC = 33.5[PPM].
+
+After applying curvature correction we reduced TC = 27[PPM] - 
+![image](https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/db8ca726-b1c8-47ac-aaca-9add8e427cb1)
+
+Note - we are still seeing curvature curve but peak2min value dropped by 2mV.
+
+Looking at DC range, we see a change of 17mV over +/-10% supply change - 
+
+![image](https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/2423293c-db68-495d-b3d8-d0d1dae1c7c1)
+
+**Start-up circuit**
+
+BGR has 2 solutions for Ids, this is why we need a start-up circuit, and the goal is to increase CTAT branch voltage after VDD stabilize.
+
+We chose the following circuit - 
+
+![image](https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/01a8d37f-4799-4fab-bdd6-1c0980a906f6)
+
+where M12 is generating a current which starts the op-amp and raises CTAT voltage. once M0 $V_s > V_d$ , it will go to cut-off and no current will flow in start-up circuit. 
+
+From transient simulation we can see Vout start-up after 9[msec] - 
+![image](https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/7edcea99-7462-4b9c-bfda-21644287b46d)
+
+**Op-Amp**
+
+We chose 5T-OTA with native Vth differential pair (PMOS can also work here) because of high VBE voltage (regular NMOS won't have enough head-room).
+OTA design parameters - 
+* A = 20dB
+* PM = 92[deg]
+* PSRR = 28dB
+
+Op-amp design - 
+
+![image](https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/ad73a7db-2532-4f39-b235-65c3e3ddde39)
+
+Stability simulation - 
+
+![image](https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/ae28e0e5-58fa-4e66-aaf4-90fcc71ac037)
+
+PSRR - 
+
+![image](https://github.com/dsapir4422/Sub-BGR-with-slope-and-curvature-correction/assets/87266625/2f0835ac-1230-40a7-9d86-93385f5e0bc0)
+
+
+
+
+
+
 
 
